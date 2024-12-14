@@ -4,9 +4,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 const Chart = ({ transactions, selectedMonth }) => {
   const [isBoxVisible, setIsBoxVisible] = useState(true);
   const boxRef = useRef(null);
+  const initialPosition = useRef({ x: 0, y: 0 });
 
   const getPriceRangeData = () => {
-    const ranges = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+    const ranges = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900];
     const priceRangeData = ranges.map((range, index) => {
       const count = transactions.filter((transaction) => {
         const transactionMonth = new Date(transaction.dateOfSale).getMonth() + 1;
@@ -26,19 +27,17 @@ const Chart = ({ transactions, selectedMonth }) => {
   const data = getPriceRangeData();
 
   const getSalesStats = () => {
-    const totalSale = transactions.reduce((sum, transaction) => {
-      const transactionMonth = new Date(transaction.dateOfSale).getMonth() + 1;
-      if (transactionMonth === selectedMonth) {
-        return sum + transaction.price;
-      }
-      return sum;
-    }, 0);
-
-    const totalSold = transactions.filter((transaction) => {
+    // Filter only sold items
+    const soldTransactions = transactions.filter((transaction) => {
       const transactionMonth = new Date(transaction.dateOfSale).getMonth() + 1;
       return transactionMonth === selectedMonth && transaction.sold;
-    }).length;
+    });
 
+    // Calculate total sale (sum of the price of sold items)
+    const totalSale = soldTransactions.reduce((sum, transaction) => sum + transaction.price, 0);
+
+    // Calculate the total sold and not sold items
+    const totalSold = soldTransactions.length;
     const totalNotSold = transactions.filter((transaction) => {
       const transactionMonth = new Date(transaction.dateOfSale).getMonth() + 1;
       return transactionMonth === selectedMonth && !transaction.sold;
@@ -51,9 +50,13 @@ const Chart = ({ transactions, selectedMonth }) => {
 
   const handleDrag = (e) => {
     const box = boxRef.current;
+    const offsetX = e.clientX - initialPosition.current.x;
+    const offsetY = e.clientY - initialPosition.current.y;
     box.style.position = 'absolute';
-    box.style.left = `${e.clientX - box.offsetWidth / 2}px`;
-    box.style.top = `${e.clientY - box.offsetHeight / 2}px`;
+    box.style.left = `${box.offsetLeft + offsetX}px`;
+    box.style.top = `${box.offsetTop + offsetY}px`;
+
+    initialPosition.current = { x: e.clientX, y: e.clientY };
   };
 
   const handleDragEnd = () => {
@@ -62,6 +65,7 @@ const Chart = ({ transactions, selectedMonth }) => {
   };
 
   const handleDragStart = (e) => {
+    initialPosition.current = { x: e.clientX, y: e.clientY };
     document.addEventListener('mousemove', handleDrag);
     document.addEventListener('mouseup', handleDragEnd);
   };
@@ -71,7 +75,7 @@ const Chart = ({ transactions, selectedMonth }) => {
       {isBoxVisible && (
         <div
           ref={boxRef}
-          className="absolute top-20 left-0 p-4 bg-gray-900 text-white rounded-lg shadow-lg w-64 cursor-pointer"
+          className="absolute top-10 right-0 p-4 bg-gray-900 text-white rounded-lg shadow-lg w-64 cursor-pointer z-10"
           onMouseDown={handleDragStart}
         >
           <div className="flex justify-between items-center mb-4">
