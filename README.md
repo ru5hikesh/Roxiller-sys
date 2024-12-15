@@ -1,5 +1,5 @@
-## Assignment for RS
+# Assignment for RS
 
 ## clone:- 
-# npm install
-# npm run dev
+### npm install
+### npm run dev
