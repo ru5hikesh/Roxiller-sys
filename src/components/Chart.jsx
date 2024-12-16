@@ -18,7 +18,7 @@ const Chart = ({ transactions, selectedMonth }) => {
           (index === ranges.length - 1 || price < ranges[index + 1])
         );
       }).length;
-      return { range: `${range}-${ranges[index + 1] || "900+"}`, count };
+      return { range: `${range}-${ranges[index + 1] || "1000+"}`, count };
     });
 
     return priceRangeData;
